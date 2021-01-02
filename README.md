@@ -1,4 +1,4 @@
-small program that allow to search json object key.
+small program that allow to search in json files.
 
 #dependancy
 ```
