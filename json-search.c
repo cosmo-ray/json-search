@@ -60,7 +60,7 @@ void usage(void)
 	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
 	       "\t-o: multiple patern search, NOT YET IMPLEMENTED\n"
 	       "\t-t: look for object child, NOT YET IMPLEMENTED\n"
-	       "\t-h: are you still wondering what this is doing ?");
+	       "\t-h: are you really wondering what this is ?\n");
 }
 
 int strcasestr_look(const char *haystack, const char *needle)
@@ -186,9 +186,6 @@ int main(int argc, char **argv)
 	struct json_object *j_file;
 	static struct looker lks[MAX_LOOKERS];
 
-	if (argc < 3)
-		panic("not enough args");
-
 	for (int i = 1; i < argc; ++i) {
 		if (argv[i][0] == '-') {
 			char *pc = argv[i] + 1;
@@ -243,6 +240,9 @@ int main(int argc, char **argv)
 			lks[nb_lookers - 1].deep++;
 		}
 	}
+
+	if (nb_files < 1)
+		panic("not enough args");
 
 	if (program_flag & CASE_INSENSITIVE) {
 		if (looker == strstr_look)
