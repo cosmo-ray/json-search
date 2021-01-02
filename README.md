@@ -1,5 +1,10 @@
 small program that allow to search json object key.
 
+#dependancy
+```
+json-c libc
+```
+
 #usage:
 json-search NEEDLE FILE [FILES] [OPTION]
 
