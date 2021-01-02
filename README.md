@@ -1,8 +1,9 @@
 small program that allow to search object ke into json.
 
 example:
-take this json:
+
 ```
+$cat little-space.json:
 {
     "name" : "little-space",
     "pre-load" : [
@@ -40,16 +41,8 @@ take this json:
         ]
     }
 }
-```
-do
 
-```
-json-search  files ../Pre-Hangover-Quest/start.json ../little-space/start.json
-```
-
-get
-
-```
+$ json-search  files .little-space/start.json
 ../little-space/start.json: [
   "js\/funtions\/Normes.js",
   "js\/define\/display.js",
