@@ -1,4 +1,4 @@
-small program that allow to search object ke into json.
+small program that allow to search json object key.
 
 example:
 
