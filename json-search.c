@@ -58,7 +58,7 @@ void usage(void)
 	       "\t-s: locate sub-string instead of strict comparison\n"
 	       "\t\tex: 'file' will match with 'files'\n"
 	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
-	       "\t-o: multiple patern search, NOT YET IMPLEMENTED\n"
+	       "\t-o: multiple patern search\n"
 	       "\t-t: look for object child, NOT YET IMPLEMENTED\n"
 	       "\t-h: are you really wondering what this is ?\n");
 }
@@ -108,7 +108,8 @@ void print(const char *f, const char *k, struct json_object *v)
 		return;
 	}
 	printf("%s - %s: %s\n", f, k,
-	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY));
+	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
+					      JSON_C_TO_STRING_NOSLASHESCAPE));
 
 }
 
