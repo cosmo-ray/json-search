@@ -85,7 +85,7 @@ int strcmp_look(const char *haystack, const char *needle)
 
 int (*looker)(const char *, const char *) = strcmp_look;
 
-void print(const char *f, struct json_object *v)
+void print(const char *f, const char *k, struct json_object *v)
 {
 	if (program_flag & RAW_PRINT) {
 		if (json_object_get_type(v) == json_type_array ||
@@ -107,7 +107,7 @@ void print(const char *f, struct json_object *v)
 		}
 		return;
 	}
-	printf("%s: %s\n", f,
+	printf("%s - %s: %s\n", f, k,
 	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY));
 
 }
@@ -144,9 +144,9 @@ void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 			if (looker(to_look, expresion)) {
 				++nb_found;
 				if (program_flag & PRINT_PARENT) {
-					print(f, o);
+					print(f, k, o);
 				} else {
-					print(f, v);
+					print(f, k, v);
 				}
 			}
 			obj_lookup(f, v, lks);
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 	int nb_files = 0;
 	int nb_lookers = 1;
 	struct json_object *j_file;
-	static struct looker lks[MAX_LOOKERS];
+	struct looker lks[MAX_LOOKERS] = {0};
 
 	for (int i = 1; i < argc; ++i) {
 		if (argv[i][0] == '-') {
@@ -218,20 +218,23 @@ int main(int argc, char **argv)
 						printf("print parent mode\n");
 					program_flag |= PRINT_PARENT;
 				} else if (*pc == 'r') {
-					panic("-r not impemented reseved for recursive files search");
+					panic("-r not impemented reseved for recursive files search\n");
 				} else if (*pc == 'o') {
-					panic("-o not impemented reseved for 'or'");
+					if (!lks[nb_lookers - 1].deep) {
+						panic("missing argument");
+					}
+					++nb_lookers;
 				} else if (*pc == 't') {
-					panic("-t not impemented reseved for 'though'");
+					panic("-t not impemented reseved for 'though'\n");
 				} else {
-					panic("'%c': not sure option", *pc);
+					panic("'%c': not sure option\n", *pc);
 				}
 			}
 			continue;
 		}
 		if (lks[nb_lookers - 1].deep > 0) {
 			if (++nb_files > MAX_FILES)
-				panic("Too much files, max: %d", MAX_FILES);
+				panic("Too much files, max: %d\n", MAX_FILES);
 			files[nb_files - 1] = argv[i];
 		} else {
 			int deep = lks[nb_lookers - 1].deep;
@@ -241,8 +244,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (nb_files < 1)
-		panic("not enough args");
+	if (nb_files < 1 || !lks[nb_lookers - 1].deep)
+		panic("not enough args\n");
 
 	if (program_flag & CASE_INSENSITIVE) {
 		if (looker == strstr_look)
@@ -254,5 +257,7 @@ int main(int argc, char **argv)
 	for (int i = 0; i < nb_files; ++i)
 		for (int j = 0; j < nb_lookers; ++j)
 			file_look(files[i], &lks[j]);
-	return !nb_found;
+	if (!nb_found)
+		panic("nothing found");
+	return 0;
 }
