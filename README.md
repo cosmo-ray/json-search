@@ -5,6 +5,8 @@ json-search needle file [files] [OPTION]
 
 #options:
 -v: verbose mode
+-i: case insensitive
+-s: locate substring instead of the same string (file with match with files)
 
 #example:
 
