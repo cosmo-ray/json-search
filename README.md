@@ -1,12 +1,13 @@
 small program that allow to search json object key.
 
 #usage:
-json-search needle file [files] [OPTION]
+json-search NEEDLE FILE [FILES] [OPTION]
 
 #options:
 -v: verbose mode
 -i: case insensitive
--s: locate substring instead of the same string (file with match with files)
+-s: locate sub-string instead of the strict comparison
+-h: show help
 
 #example:
 

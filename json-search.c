@@ -27,6 +27,17 @@ int nb_found;
 
 int program_flag;
 
+void usage(void)
+{
+	printf("json-search NEEDLE FILE [FILES] [OPTION]\n\n"
+	       "OPTIONS:\n"
+	       "\t-v: verbose mode\n"
+	       "\t-i: case insensitive\n"
+	       "\t-s: locate sub-string instead of strict comparison\n"
+	       "\t\tex: 'file' will match with 'files'\n"
+	       "\t-h: are you still wondering what this is doing ?");
+}
+
 int strcasestr_look(const char *haystack, const char *needle)
 {
 	return !!strcasestr(haystack, needle);
@@ -112,6 +123,9 @@ int main(int argc, char **argv)
 				if (*pc == 'v') {
 					printf("verbose mode\n");
 					program_flag |= VERBOSE;
+				} else if (*pc == 'h') {
+					usage();
+					return 0;
 				} else if (*pc == 's') {
 					if (program_flag & VERBOSE)
 						printf("strstr mode\n");
