@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +23,31 @@ struct looker {
 int nb_found;
 
 #define VERBOSE 1
+#define CASE_INSENSITIVE 4
+
 int program_flag;
+
+int strcasestr_look(const char *haystack, const char *needle)
+{
+	return !!strcasestr(haystack, needle);
+}
+
+int strcasecmp_look(const char *haystack, const char *needle)
+{
+	return !strcasecmp(haystack, needle);
+}
+
+int strstr_look(const char *haystack, const char *needle)
+{
+	return !!strstr(haystack, needle);
+}
+
+int strcmp_look(const char *haystack, const char *needle)
+{
+	return !strcmp(haystack, needle);
+}
+
+int (*looker)(const char *, const char *) = strcmp_look;
 
 void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 {
@@ -34,11 +59,10 @@ void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 				printf("object inspect %s\n", k);
 			}
 
-			if (!strcmp(expresion, k)) {
+			if (looker(k, expresion)) {
 				++nb_found;
 				printf("%s: %s\n", f,
-				       json_object_to_json_string_ext(v,
-								      JSON_C_TO_STRING_PRETTY));
+				       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY));
 			}
 			obj_lookup(f, v, lks);
 		}
@@ -88,6 +112,14 @@ int main(int argc, char **argv)
 				if (*pc == 'v') {
 					printf("verbose mode\n");
 					program_flag |= VERBOSE;
+				} else if (*pc == 's') {
+					if (program_flag & VERBOSE)
+						printf("strstr mode\n");
+					looker = strstr_look;
+				} else if (*pc == 'i') {
+					if (program_flag & VERBOSE)
+						printf("case insensitive mode\n");
+					program_flag |= CASE_INSENSITIVE;
 				} else {
 					panic("'%c': not sure option", *pc);
 				}
@@ -105,6 +137,14 @@ int main(int argc, char **argv)
 			lks[nb_lookers - 1].deep++;
 		}
 	}
+
+	if (program_flag & CASE_INSENSITIVE) {
+		if (looker == strstr_look)
+			looker = strcasestr_look;
+		else
+			looker = strcasecmp_look;
+	}
+
 	for (int i = 0; i < nb_files; ++i)
 		for (int j = 0; j < nb_lookers; ++j)
 			file_look(files[i], &lks[j]);

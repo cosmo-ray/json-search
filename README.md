@@ -1,6 +1,12 @@
 small program that allow to search json object key.
 
-example:
+#usage:
+json-search needle file [files] [OPTION]
+
+#options:
+-v: verbose mode
+
+#example:
 
 ```
 $cat little-space.json:
