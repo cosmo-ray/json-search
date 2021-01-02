@@ -38,8 +38,11 @@ struct looker {
 
 int nb_found;
 
-#define VERBOSE 1
-#define CASE_INSENSITIVE 4
+#define VERBOSE (1 << 0)
+#define RAW_PRINT (1 << 2)
+#define CASE_INSENSITIVE (1 << 3)
+#define PRINT_PARENT (1 << 4)
+#define CHECK_VALUE (1 << 5)
 
 int program_flag;
 
@@ -49,8 +52,14 @@ void usage(void)
 	       "OPTIONS:\n"
 	       "\t-v: verbose mode\n"
 	       "\t-i: case insensitive\n"
+	       "\t-V: Check Value instead of keys\n"
+	       "\t-R: raw print\n"
+	       "\t-P: print parent instead of element\n"
 	       "\t-s: locate sub-string instead of strict comparison\n"
 	       "\t\tex: 'file' will match with 'files'\n"
+	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
+	       "\t-o: multiple patern search, NOT YET IMPLEMENTED\n"
+	       "\t-t: look for object child, NOT YET IMPLEMENTED\n"
 	       "\t-h: are you still wondering what this is doing ?");
 }
 
@@ -76,20 +85,69 @@ int strcmp_look(const char *haystack, const char *needle)
 
 int (*looker)(const char *, const char *) = strcmp_look;
 
+void print(const char *f, struct json_object *v)
+{
+	if (program_flag & RAW_PRINT) {
+		if (json_object_get_type(v) == json_type_array ||
+		    json_object_get_type(v) == json_type_object) {
+			printf("%s type match\n",
+			       json_object_get_type(v) == json_type_array ?
+			       "array": "object");
+		} else if (json_object_get_type(v) == json_type_string) {
+			printf("%s\n", json_object_get_string(v));
+		} else if (json_object_get_type(v) == json_type_int) {
+			printf("%d\n", json_object_get_int(v));
+		} else if (json_object_get_type(v) == json_type_double) {
+			printf("%f\n", json_object_get_double(v));
+		} else if (json_object_get_type(v) == json_type_boolean) {
+			printf("%s\n", json_object_get_boolean(v) ?
+			       "true" : "false");
+		} else {
+			printf("match on unsuported type");
+		}
+		return;
+	}
+	printf("%s: %s\n", f,
+	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY));
+
+}
+
 void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 {
 	char *expresion = lks->expresions[lks->deep - 1];
 
 	if (json_object_get_type(o) == json_type_object) {
 		json_object_object_foreach(o, k, v) {
-			if (program_flag & VERBOSE) {
-				printf("object inspect %s\n", k);
+			char num_buf[128];
+			const char *to_look = k;
+
+			if (program_flag & CHECK_VALUE) {
+				if (json_object_get_type(v) == json_type_string) {
+					to_look = json_object_get_string(v);
+				} else if (json_object_get_type(v) ==
+					   json_type_int) {
+					snprintf(num_buf,  128, "%d",
+						 json_object_get_int(v));
+					to_look = num_buf;
+				} else if (json_object_get_type(v) ==
+					   json_type_double) {
+					snprintf(num_buf, 128, "%f",
+						 json_object_get_double(v));
+					to_look = num_buf;
+				}
 			}
 
-			if (looker(k, expresion)) {
+			if (program_flag & VERBOSE) {
+				printf("object inspect %s\n", to_look);
+			}
+
+			if (looker(to_look, expresion)) {
 				++nb_found;
-				printf("%s: %s\n", f,
-				       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY));
+				if (program_flag & PRINT_PARENT) {
+					print(f, o);
+				} else {
+					print(f, v);
+				}
 			}
 			obj_lookup(f, v, lks);
 		}
@@ -142,6 +200,10 @@ int main(int argc, char **argv)
 				} else if (*pc == 'h') {
 					usage();
 					return 0;
+				} else if (*pc == 'V') {
+					if (program_flag & VERBOSE)
+						printf("check value mode\n");
+					program_flag |= CHECK_VALUE;
 				} else if (*pc == 's') {
 					if (program_flag & VERBOSE)
 						printf("strstr mode\n");
@@ -150,6 +212,20 @@ int main(int argc, char **argv)
 					if (program_flag & VERBOSE)
 						printf("case insensitive mode\n");
 					program_flag |= CASE_INSENSITIVE;
+				} else if (*pc == 'R') {
+					if (program_flag & VERBOSE)
+						printf("raw print mode\n");
+					program_flag |= RAW_PRINT;
+				} else if (*pc == 'p') {
+					if (program_flag & VERBOSE)
+						printf("print parent mode\n");
+					program_flag |= PRINT_PARENT;
+				} else if (*pc == 'r') {
+					panic("-r not impemented reseved for recursive files search");
+				} else if (*pc == 'o') {
+					panic("-o not impemented reseved for 'or'");
+				} else if (*pc == 't') {
+					panic("-t not impemented reseved for 'though'");
 				} else {
 					panic("'%c': not sure option", *pc);
 				}
