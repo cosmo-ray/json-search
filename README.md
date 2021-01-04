@@ -50,3 +50,10 @@ $ json-search  files .little-space/start.json
       "js/define/input.js"
 ]
 ```
+
+TODO:
+
+* Handle whildcards
+* Fix not implemented options
+* add one option to add a maximum deep in search
+
