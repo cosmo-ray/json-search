@@ -6,14 +6,17 @@ json-c libc
 ```
 
 #usage:
+```
 json-search NEEDLE FILE [FILES] [OPTION]
-
+```
+```
 #options:
 -v: verbose mode
 -i: case insensitive
 -s: locate sub-string instead of the strict comparison
 -h: show help
 ... (plenty of other options)
+```
 
 #example:
 
