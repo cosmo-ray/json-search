@@ -61,4 +61,5 @@ $ json-search  files .little-space/start.json
 # F.A.Q
 
 Q: So it's just a cheap version of JQ
+
 A: yes, like grep is a cheap version of sed, this tool try to be a simpler but easier to use version on jq that focus only on finding elements in json.
