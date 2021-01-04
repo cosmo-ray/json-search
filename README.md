@@ -56,4 +56,5 @@ TODO:
 * Handle whildcards
 * Fix not implemented options
 * add one option to add a maximum deep in search
+* Allow to read json on stdin (ex: `cat file | json-search thing`)
 
