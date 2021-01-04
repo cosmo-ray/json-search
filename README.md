@@ -1,16 +1,16 @@
 small program that allow to search json files.
 
-#dependancies
+# dependancies
 ```
 json-c libc
 ```
 
-#usage:
+# usage:
 ```
 json-search NEEDLE FILE [FILES] [OPTION]
 ```
 ```
-#options:
+# options:
 -v: verbose mode
 -i: case insensitive
 -s: locate sub-string instead of the strict comparison
@@ -18,7 +18,7 @@ json-search NEEDLE FILE [FILES] [OPTION]
 ... (plenty of other options)
 ```
 
-#example:
+# example:
 
 ```
 $cat little-space.json:
@@ -51,10 +51,14 @@ $ json-search  files .little-space/start.json
 ]
 ```
 
-TODO:
+# TODO:
 
 * Handle whildcards
 * Fix not implemented options
 * add one option to add a maximum deep in search
 * Allow to read json on stdin (ex: `cat file | json-search thing`)
 
+# F.A.Q
+
+Q: So it's just a cheap version of JQ
+A: yes, like grep is a cheap version of sed, this tool try to be a simpler but easier to use version on jq that focus only on finding elements in json.
