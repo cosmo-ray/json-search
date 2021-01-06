@@ -43,6 +43,7 @@ int nb_found;
 #define CASE_INSENSITIVE (1 << 3)
 #define PRINT_PARENT (1 << 4)
 #define CHECK_VALUE (1 << 5)
+#define JUST_JSON (1 << 6)
 
 int program_flag;
 
@@ -60,6 +61,7 @@ void usage(void)
 	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
 	       "\t-o: multiple patern search\n"
 	       "\t-t: look for object child, NOT YET IMPLEMENTED\n"
+	       "\t-j: just json, only print json as output\n",
 	       "\t-h: are you really wondering what this is ?\n");
 }
 
@@ -107,7 +109,9 @@ void print(const char *f, const char *k, struct json_object *v)
 		}
 		return;
 	}
-	printf("%s - %s: %s\n", f, k,
+	if (!(program_flag & JUST_JSON))
+		printf("%s - %s: ", f, k);
+	printf("%s\n",
 	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
 					      JSON_C_TO_STRING_NOSLASHESCAPE));
 
@@ -201,6 +205,10 @@ int main(int argc, char **argv)
 					if (program_flag & VERBOSE)
 						printf("strstr mode\n");
 					looker = strstr_look;
+				} else if (*pc == 'j') {
+					if (program_flag & VERBOSE)
+						printf("just json mode\n");
+					program_flag |= JUST_JSON;
 				} else if (*pc == 'i') {
 					if (program_flag & VERBOSE)
 						printf("case insensitive mode\n");
