@@ -164,14 +164,8 @@ void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 	}
 }
 
-void file_look(const char *f, struct looker *lks)
+void file_look(const char *f, struct json_object *j_file, struct looker *lks)
 {
-	struct json_object *j_file = json_object_from_file(f);
-
-	if (!j_file) {
-		panic("error in %s json", f);
-	}
-
 	if (program_flag & VERBOSE) {
 		printf("look for '%s' in file '%s'",
 		       lks->expresions[lks->deep - 1], f);
@@ -184,6 +178,7 @@ int main(int argc, char **argv)
 	char *files[MAX_FILES];
 	int nb_files = 0;
 	int nb_lookers = 1;
+	int fd = -1;
 	struct json_object *j_file;
 	struct looker lks[MAX_LOOKERS] = {0};
 
@@ -245,8 +240,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (nb_files < 1 || !lks[nb_lookers - 1].deep)
+	if (!lks[nb_lookers - 1].deep)
 		panic("not enough args\n");
+
+	if (!nb_files) {
+		fd = 0;
+		nb_files = 1;
+	}
 
 	if (program_flag & CASE_INSENSITIVE) {
 		if (looker == strstr_look)
@@ -256,8 +256,21 @@ int main(int argc, char **argv)
 	}
 
 	for (int i = 0; i < nb_files; ++i)
-		for (int j = 0; j < nb_lookers; ++j)
-			file_look(files[i], &lks[j]);
+		for (int j = 0; j < nb_lookers; ++j) {
+			struct json_object *j_file;
+			const char *f = fd < 0 ? files[i] : "<stdin>";
+
+			if (fd < 0)
+				j_file = json_object_from_file(files[i]);
+			else
+				j_file = json_object_from_fd(fd);
+
+			if (!j_file) {
+				panic("error in %s json", f);
+			}
+
+			file_look(f, j_file, &lks[j]);
+		}
 	if (!nb_found)
 		panic("nothing found");
 	return 0;
