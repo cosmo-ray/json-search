@@ -43,9 +43,16 @@ int nb_found;
 #define CASE_INSENSITIVE (1 << 3)
 #define PRINT_PARENT (1 << 4)
 #define CHECK_VALUE (1 << 5)
-#define JUST_JSON (1 << 6)
+#define LOCATION_INFO (1 << 6)
 
 int program_flag;
+
+struct print_info {
+	struct json_object *j;
+	const char *f;
+	const char *k;
+	struct print_info *next;
+} *pinfo;
 
 void usage(void)
 {
@@ -61,7 +68,7 @@ void usage(void)
 	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
 	       "\t-o: multiple patern search\n"
 	       "\t-t: look for object child, NOT YET IMPLEMENTED\n"
-	       "\t-j: just json, only print json as output\n",
+	       "\t-l: location info: print file and key\n",
 	       "\t-h: are you really wondering what this is ?\n");
 }
 
@@ -87,7 +94,15 @@ int strcmp_look(const char *haystack, const char *needle)
 
 int (*looker)(const char *, const char *) = strcmp_look;
 
-void print(const char *f, const char *k, struct json_object *v)
+int should_print_array(void)
+{
+	return nb_found > 1 &&
+		!(program_flag & RAW_PRINT) &&
+		!(program_flag & LOCATION_INFO);
+}
+
+void print(const char *f, const char *k, struct json_object *v,
+	   int print_colun)
 {
 	if (program_flag & RAW_PRINT) {
 		if (json_object_get_type(v) == json_type_array ||
@@ -109,12 +124,14 @@ void print(const char *f, const char *k, struct json_object *v)
 		}
 		return;
 	}
-	if (!(program_flag & JUST_JSON))
+	if ((program_flag & LOCATION_INFO))
 		printf("%s - %s: ", f, k);
-	printf("%s\n",
+	printf("%s",
 	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
 					      JSON_C_TO_STRING_NOSLASHESCAPE));
-
+	if (print_colun)
+		printf(",");
+	printf("\n");
 }
 
 void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
@@ -148,10 +165,16 @@ void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 
 			if (looker(to_look, expresion)) {
 				++nb_found;
+				struct print_info *tmp = malloc(sizeof *tmp);
+
+				tmp->k = k;
+				tmp->f = f;
+				tmp->next = pinfo;
+				pinfo = tmp;
 				if (program_flag & PRINT_PARENT) {
-					print(f, k, o);
+					tmp->j = o;
 				} else {
-					print(f, k, v);
+					tmp->j = v;
 				}
 			}
 			obj_lookup(f, v, lks);
@@ -180,10 +203,10 @@ void file_look(const char *f, struct json_object *j_file, struct looker *lks)
 int main(int argc, char **argv)
 {
 	char *files[MAX_FILES];
+	struct json_object *j_files[MAX_FILES];
 	int nb_files = 0;
 	int nb_lookers = 1;
 	int fd = -1;
-	struct json_object *j_file;
 	struct looker lks[MAX_LOOKERS] = {0};
 
 	for (int i = 1; i < argc; ++i) {
@@ -205,10 +228,10 @@ int main(int argc, char **argv)
 					if (program_flag & VERBOSE)
 						printf("strstr mode\n");
 					looker = strstr_look;
-				} else if (*pc == 'j') {
+				} else if (*pc == 'l') {
 					if (program_flag & VERBOSE)
 						printf("just json mode\n");
-					program_flag |= JUST_JSON;
+					program_flag |= LOCATION_INFO;
 				} else if (*pc == 'i') {
 					if (program_flag & VERBOSE)
 						printf("case insensitive mode\n");
@@ -263,23 +286,44 @@ int main(int argc, char **argv)
 			looker = strcasecmp_look;
 	}
 
-	for (int i = 0; i < nb_files; ++i)
+	for (int i = 0; i < nb_files; ++i) {
+		struct json_object *j_file;
+		const char *f = fd < 0 ? files[i] : "<stdin>";
+
+		if (fd < 0)
+			j_file = json_object_from_file(files[i]);
+		else
+			j_file = json_object_from_fd(fd);
+
+		if (!j_file) {
+			panic("error in %s json", f);
+		}
+
+		j_files[i] = j_file;
 		for (int j = 0; j < nb_lookers; ++j) {
-			struct json_object *j_file;
-			const char *f = fd < 0 ? files[i] : "<stdin>";
-
-			if (fd < 0)
-				j_file = json_object_from_file(files[i]);
-			else
-				j_file = json_object_from_fd(fd);
-
-			if (!j_file) {
-				panic("error in %s json", f);
-			}
 
 			file_look(f, j_file, &lks[j]);
 		}
+	}
+	if (should_print_array())
+		printf("[\n");
+
+	for (struct print_info *tmp = pinfo; tmp; tmp = pinfo) {
+		pinfo = pinfo->next;
+		print(tmp->f, tmp->k, tmp->j,
+		      pinfo && should_print_array());
+		free(tmp);
+	}
+
+	if (should_print_array())
+		printf("]\n");
+
+	for (int i = 0; i < nb_files; ++i)
+		json_object_put(j_files[i]);
+
+
 	if (!nb_found)
 		panic("nothing found");
+
 	return 0;
 }
