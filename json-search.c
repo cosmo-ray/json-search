@@ -56,7 +56,9 @@ struct print_info {
 
 void usage(void)
 {
-	printf("json-search NEEDLE FILE [FILES] [OPTION]\n\n"
+	printf("json-search [NEEDLE] [FILE] [FILES] [OPTION]\n"
+	       "Search json object or value inside others jsons\n"
+	       "just reformat input json if no NEEDLE\n\n"
 	       "OPTIONS:\n"
 	       "\t-v: verbose mode\n"
 	       "\t-i: case insensitive\n"
@@ -271,9 +273,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (!lks[nb_lookers - 1].deep)
-		panic("not enough args\n");
-
 	if (!nb_files) {
 		fd = 0;
 		nb_files = 1;
@@ -300,9 +299,16 @@ int main(int argc, char **argv)
 		}
 
 		j_files[i] = j_file;
-		for (int j = 0; j < nb_lookers; ++j) {
 
-			file_look(f, j_file, &lks[j]);
+		if (!lks[nb_lookers - 1].deep) {
+			printf("%s\n", json_object_to_json_string_ext(j_file, JSON_C_TO_STRING_PRETTY |
+								    JSON_C_TO_STRING_NOSLASHESCAPE));
+			return 0;
+		} else {
+			for (int j = 0; j < nb_lookers; ++j) {
+
+				file_look(f, j_file, &lks[j]);
+			}
 		}
 	}
 	if (should_print_array())
