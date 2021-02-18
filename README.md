@@ -7,7 +7,7 @@ json-c libc
 
 # usage:
 ```
-json-search NEEDLE FILE [FILES] [OPTION]
+json-search [NEEDLE] [FILE] [FILES] [OPTION]
 ```
 ```
 # options:
@@ -17,6 +17,11 @@ json-search NEEDLE FILE [FILES] [OPTION]
 -h: show help
 ... (plenty of other options)
 ```
+But really just use
+```
+json-search -h
+```
+It's more updated than this readme
 
 # example:
 
