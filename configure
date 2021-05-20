@@ -1,0 +1,32 @@
+#!/bin/bash
+
+DIR=$PWD
+NO_RECOMPILE=1
+
+echo "" > config.mk
+echo '#!/bin/bash' > ./cp_json-c.sh
+chmod +x ./cp_json-c.sh
+
+for arg in $@; do
+    echo $( echo "$arg" | cut -d '=' -f 1)
+    if [ "--compile-json-c" = $arg ]; then
+	git clone https://github.com/json-c/json-c.git
+	 mkdir json-c-build
+	 cd json-c-build
+	 cmake3 ../json-c/
+	 make
+	 cd -
+	 NO_RECOMPILE=0
+	 echo 'JSON_C_CFLAGS=-I./json-c -I./json-c-build' >> config.mk
+	 echo 'JSON_C_LDFLAGS="-L./json-c-build"' >> config.mk
+	 echo "cp json-c-build/libjson-c.so* json-search.AppDir/usr/lib/" >> ./cp_json-c.sh
+    fi
+    if [ "--help" = $arg ]; then
+	echo "--compile-json-c: clone and compile json-c"
+    fi
+done
+
+if [ $NO_RECOMPILE -eq 1 ]; then
+    echo JSON_C_CFLAGS=$(pkg-config --cflags json-c) >> config.mk
+    echo "cp \$(ldd json-search | grep json | cut -d ' ' -f  3) json-search.AppDir/usr/lib/" >> ./cp_json-c.sh
+fi
