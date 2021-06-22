@@ -72,7 +72,7 @@ void usage(void)
 	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
 	       "\t-o: multiple patern search\n"
 	       "\t-t: look for object child, NOT YET IMPLEMENTED\n"
-	       "\t-l: location info: print file and key\n",
+	       "\t-l: location info: print file and key\n"
 	       "\t-h: are you really wondering what this is ?\n");
 }
 
