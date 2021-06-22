@@ -37,6 +37,7 @@ struct looker {
 };
 
 int nb_found;
+int max_founds;
 
 #define VERBOSE (1 << 0)
 #define RAW_PRINT (1 << 2)
@@ -64,6 +65,7 @@ void usage(void)
 	       "\t-i: case insensitive\n"
 	       "\t-V: Check Value instead of keys\n"
 	       "\t-R: raw print\n"
+	       "\t-M NUM: limitate the number of returned objects\n"
 	       "\t-P: print parent instead of element\n"
 	       "\t-s: locate sub-string instead of strict comparison\n"
 	       "\t\tex: 'file' will match with 'files'\n"
@@ -166,6 +168,8 @@ void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 			}
 
 			if (looker(to_look, expresion)) {
+				if (max_founds && nb_found >= max_founds)
+					return;
 				++nb_found;
 				struct print_info *tmp = malloc(sizeof *tmp);
 
@@ -226,6 +230,17 @@ int main(int argc, char **argv)
 					if (program_flag & VERBOSE)
 						printf("check value mode\n");
 					program_flag |= CHECK_VALUE;
+				} else if (*pc == 'M') {
+					if (*(pc + 1))
+						panic("can't have option after -M, need NUMBER");
+					if (!argv[i + 1])
+						panic("-M, not enough arguments, need number");
+					++i;
+				        max_founds = atoi(argv[i]);
+					if (program_flag & VERBOSE)
+						printf("max number of foundables %d\n",
+							max_founds);
+					goto next_arg;
 				} else if (*pc == 's') {
 					if (program_flag & VERBOSE)
 						printf("strstr mode\n");
@@ -259,6 +274,7 @@ int main(int argc, char **argv)
 					panic("'%c': not sure option\n", *pc);
 				}
 			}
+		next_arg:
 			continue;
 		}
 		if (lks[nb_lookers - 1].deep > 0) {
