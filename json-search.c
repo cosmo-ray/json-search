@@ -45,6 +45,7 @@ int max_founds;
 #define PRINT_PARENT (1 << 4)
 #define CHECK_VALUE (1 << 5)
 #define LOCATION_INFO (1 << 6)
+#define PRINT_KEYS (1 << 7)
 
 int program_flag;
 
@@ -64,6 +65,7 @@ void usage(void)
 	       "\t-v: verbose mode\n"
 	       "\t-i: case insensitive\n"
 	       "\t-V: Check Value instead of keys\n"
+	       "\t-K: Print only objects keys\n"
 	       "\t-R: raw print\n"
 	       "\t-M NUM: limitate the number of returned objects\n"
 	       "\t-P: print parent instead of element\n"
@@ -108,6 +110,24 @@ int should_print_array(void)
 void print(const char *f, const char *k, struct json_object *v,
 	   int print_colun)
 {
+	if (program_flag & PRINT_KEYS &&
+	    json_object_get_type(v) == json_type_object) {
+		int loop = 0;
+		if (!(program_flag & RAW_PRINT))
+			putchar('[');
+		json_object_object_foreach(v, k0, unused) {
+			if (loop++) {
+				putchar(',');
+			}
+			if (!(program_flag & RAW_PRINT))
+				printf("\n  ");
+			printf("\"%s\"", k0);
+		}
+		if (!(program_flag & RAW_PRINT))
+			printf("\n]");
+		putchar('\n');
+		return;
+	}
 	if (program_flag & RAW_PRINT) {
 		if (json_object_get_type(v) == json_type_array ||
 		    json_object_get_type(v) == json_type_object) {
@@ -261,6 +281,10 @@ int main(int argc, char **argv)
 					if (program_flag & VERBOSE)
 						printf("print parent mode\n");
 					program_flag |= PRINT_PARENT;
+				} else if (*pc == 'K') {
+					if (program_flag & VERBOSE)
+						printf("print keys mode\n");
+					program_flag |= PRINT_KEYS;
 				} else if (*pc == 'r') {
 					panic("-r not impemented reseved for recursive files search\n");
 				} else if (*pc == 'o') {
