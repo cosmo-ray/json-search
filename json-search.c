@@ -68,7 +68,7 @@ void usage(void)
 	       "\t-K: Print only objects keys\n"
 	       "\t-R: raw print\n"
 	       "\t-M NUM: limitate the number of returned objects\n"
-	       "\t-P: print parent instead of element\n"
+	       "\t-p: print parent instead of element\n"
 	       "\t-s: locate sub-string instead of strict comparison\n"
 	       "\t\tex: 'file' will match with 'files'\n"
 	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
