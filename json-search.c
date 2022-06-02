@@ -71,9 +71,7 @@ void usage(void)
 	       "\t-p: print parent instead of element\n"
 	       "\t-s: locate sub-string instead of strict comparison\n"
 	       "\t\tex: 'file' will match with 'files'\n"
-	       "\t-r: recursive file search, NOT YET IMPLEMENTED\n"
 	       "\t-o: multiple patern search\n"
-	       "\t-t: look for object child, NOT YET IMPLEMENTED\n"
 	       "\t-l: location info: print file and key\n"
 	       "\t-h: are you really wondering what this is ?\n");
 }
