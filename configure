@@ -2,6 +2,7 @@
 
 DIR=$PWD
 NO_RECOMPILE=1
+CMAKE=cmake
 
 echo "" > config.mk
 echo '#!/bin/bash' > ./cp_json-c.sh
@@ -13,7 +14,11 @@ for arg in $@; do
 	git clone https://github.com/json-c/json-c.git
 	 mkdir json-c-build
 	 cd json-c-build
-	 cmake3 ../json-c/
+	 cmake3 --help > /dev/null
+         if [ $? == 0 ]; then
+             CMAKE=cmake3
+         fi
+	 $CMAKE ../json-c/
 	 make
 	 cd -
 	 NO_RECOMPILE=0
