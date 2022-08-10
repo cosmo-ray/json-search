@@ -14,7 +14,7 @@ for arg in $@; do
 	git clone https://github.com/json-c/json-c.git
 	 mkdir json-c-build
 	 cd json-c-build
-	 cmake3 --help > /dev/null
+	 cmake3 --help >> /dev/null 2>&1 
          if [ $? == 0 ]; then
              CMAKE=cmake3
          fi
