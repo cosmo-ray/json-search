@@ -5,6 +5,10 @@ small program that allow to search json files.
 json-c libc
 ```
 
+# download:
+
+on linux you have the appimages here: https://github.com/cosmo-ray/json-search/tags
+
 # usage:
 ```
 json-search [NEEDLE] [FILE] [FILES] [OPTION]
