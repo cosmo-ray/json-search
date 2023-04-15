@@ -46,6 +46,7 @@ int max_founds;
 #define CHECK_VALUE (1 << 5)
 #define LOCATION_INFO (1 << 6)
 #define PRINT_KEYS (1 << 7)
+#define NULL_MODE (1 << 8)
 
 int program_flag;
 
@@ -68,6 +69,7 @@ void usage(void)
 	       "\t-K: Print only objects keys\n"
 	       "\t-R: raw print\n"
 	       "\t-M NUM: limitate the number of returned objects\n"
+	       "\t-n: null print, in case nothing is found(similar to jq)"
 	       "\t-p: print parent instead of element\n"
 	       "\t-s: locate sub-string instead of strict comparison\n"
 	       "\t\tex: 'file' will match with 'files'\n"
@@ -248,6 +250,10 @@ int main(int argc, char **argv)
 					if (program_flag & VERBOSE)
 						printf("check value mode\n");
 					program_flag |= CHECK_VALUE;
+				} else if (*pc == 'n') {
+					if (program_flag & VERBOSE)
+						printf("null mode\n");
+					program_flag |= NULL_MODE;
 				} else if (*pc == 'M') {
 					if (*(pc + 1))
 						panic("can't have option after -M, need NUMBER");
@@ -366,8 +372,12 @@ int main(int argc, char **argv)
 		json_object_put(j_files[i]);
 
 
-	if (!nb_found)
-		panic("nothing found");
+	if (!nb_found) {
+		if (program_flag & NULL_MODE)
+			printf("null\n");
+		else
+			panic("nothing found");
+	}
 
 	return 0;
 }
