@@ -58,7 +58,7 @@ struct print_info {
 
 void usage(void)
 {
-	printf("json-search [NEEDLE] [FILE] [FILES] [OPTION]\n"
+	printf("json-search [OPTION] [NEEDLE] [FILES]\n"
 	       "Search json object or value inside others jsons\n"
 	       "just reformat input json if no NEEDLE\n\n"
 	       "OPTIONS:\n"
