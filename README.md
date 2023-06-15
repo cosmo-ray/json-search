@@ -52,7 +52,7 @@ $cat little-space.json:
     }
 }
 
-$ json-search  files little-space.json # cat little-space.json | little-space.json work too
+$ json-search  files little-space.json # "cat little-space.json | json-search files"  work too
 ../little-space/start.json: [
       "js/funtions/Normes.js",
       "js/define/display.js",
