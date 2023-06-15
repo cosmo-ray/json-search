@@ -11,18 +11,27 @@ on linux you have the appimages here: https://github.com/cosmo-ray/json-search/t
 
 # usage:
 ```
-json-search [NEEDLE] [FILE] [FILES] [OPTION]
+json-search [OPTION] [NEEDLE] [FILES]
 ```
 ```
 # options:
--v: verbose mode
--i: case insensitive
--s: locate sub-string instead of the strict comparison
--h: show help
-... (plenty of other options)
+        -v: verbose mode
+        -i: case insensitive
+        -V: Check Value instead of keys
+        -K: Print only objects keys
+        -R: raw print
+        -M NUM: limitate the number of returned objects
+        -P: print parent instead of element
+        -s: locate sub-string instead of strict comparison
+                ex: 'file' will match with 'files'
+        -r: recursive file search, NOT YET IMPLEMENTED
+        -o: multiple patern search
+        -t: look for object child, NOT YET IMPLEMENTED
+        -l: location info: print file and key
+        -h: are you really wondering what this is ?
 ```
 But really just use
-```
+```sh
 json-search -h
 ```
 It's more updated than this readme
