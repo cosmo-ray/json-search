@@ -149,7 +149,7 @@ void print(const char *f, const char *k, struct json_object *v,
 		return;
 	}
 	if ((program_flag & LOCATION_INFO))
-		printf("%s - %s: ", f, k ? k : "(??)");
+		printf("%s - %s: ", f, k ? k : "(unknow-pos)");
 	printf("%s",
 	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
 					      JSON_C_TO_STRING_NOSLASHESCAPE));
@@ -370,8 +370,9 @@ int main(int argc, char **argv)
 		j_files[i] = j_file;
 
 		if (!lks[nb_lookers - 1].deep) {
-			printf("%s\n", json_object_to_json_string_ext(j_file, JSON_C_TO_STRING_PRETTY |
-								    JSON_C_TO_STRING_NOSLASHESCAPE));
+			printf("%s\n", json_object_to_json_string_ext(
+				       j_file, JSON_C_TO_STRING_PRETTY |
+				       JSON_C_TO_STRING_NOSLASHESCAPE));
 			return 0;
 		} else {
 			for (int j = 0; j < nb_lookers; ++j) {
