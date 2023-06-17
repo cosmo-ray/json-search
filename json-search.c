@@ -48,12 +48,17 @@ int max_founds;
 #define PRINT_KEYS (1 << 7)
 #define NULL_MODE (1 << 8)
 
+#define PATH_L 16384
+
+static char PATH[PATH_L];
+static int path_pos = 0;
+
 int program_flag;
 
 struct print_info {
 	struct json_object *j;
 	const char *f;
-	const char *k;
+	char *k;
 	struct print_info *next;
 } *pinfo;
 
@@ -75,6 +80,7 @@ void usage(void)
 	       "\t\tex: 'file' will match with 'files'\n"
 	       "\t-o: multiple patern search\n"
 	       "\t-l: location info: print file and key\n"
+	       "\t-P: path-mode: print full values path in location info\n"
 	       "\t-h: are you really wondering what this is ?\n");
 }
 
@@ -148,8 +154,9 @@ void print(const char *f, const char *k, struct json_object *v,
 		}
 		return;
 	}
-	if ((program_flag & LOCATION_INFO))
-		printf("%s - %s: ", f, k ? k : "(unknow-pos)");
+	if ((program_flag & LOCATION_INFO)) {
+		printf("%s - %s: ", f, k);
+	}
 	printf("%s",
 	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
 					      JSON_C_TO_STRING_NOSLASHESCAPE));
@@ -159,7 +166,7 @@ void print(const char *f, const char *k, struct json_object *v,
 }
 
 static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
-		struct json_object *parent, char *key)
+		struct json_object *parent)
 {
 	char *expresion = lks->expresions[lks->deep - 1];
 
@@ -188,7 +195,8 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 				++nb_found;
 				struct print_info *tmp = malloc(sizeof *tmp);
 
-				tmp->k = key;
+				if (program_flag & LOCATION_INFO)
+					tmp->k = strdup(PATH);
 				tmp->f = f;
 				tmp->next = pinfo;
 				pinfo = tmp;
@@ -217,7 +225,8 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 				++nb_found;
 				struct print_info *tmp = malloc(sizeof *tmp);
 
-				tmp->k = k;
+				if (program_flag & LOCATION_INFO)
+					tmp->k = strdup(PATH);
 				tmp->f = f;
 				tmp->next = pinfo;
 				pinfo = tmp;
@@ -227,7 +236,18 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 					tmp->j = v;
 				}
 			}
-			obj_lookup(f, v, lks, o, k);
+			if (program_flag & LOCATION_INFO) {
+				PATH[path_pos] = '.';
+				strcpy(&PATH[path_pos + 1], k);
+				path_pos +=  strlen(k);
+				path_pos += 1;
+				PATH[path_pos] = 0;
+			}
+			obj_lookup(f, v, lks, o);
+			if (program_flag & LOCATION_INFO) {
+				path_pos -= (strlen(k) + 1);
+			}
+
 		}
 	} else if (json_object_get_type(o) == json_type_array) {
 		int l = json_object_array_length(o);
@@ -236,8 +256,23 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 			printf("array check...\n");
 		}
 		for (int i = 0; i < l; ++i) {
+			if (program_flag & LOCATION_INFO) {
+				char num_buf[128];
+				snprintf(num_buf,  128, "%d", i);
+
+				PATH[path_pos] = '[';
+				strcpy(PATH + path_pos + 1, num_buf);
+				strcat(PATH + path_pos, "]");
+				path_pos += strlen(num_buf) + 2;
+				PATH[path_pos] = 0;
+			}
 			obj_lookup(f, json_object_array_get_idx(o, i), lks,
-				   o, NULL);
+				   o);
+			if (program_flag & LOCATION_INFO) {
+				char num_buf[128];
+				snprintf(num_buf,  128, "%d", i);
+				path_pos -= (strlen(num_buf) + 2);
+			}
 		}
 	}
 }
@@ -248,7 +283,7 @@ void file_look(const char *f, struct json_object *j_file, struct looker *lks)
 		printf("look for '%s' in file '%s'",
 		       lks->expresions[lks->deep - 1], f);
 	}
-	obj_lookup(f, j_file, lks, j_file, NULL);
+	obj_lookup(f, j_file, lks, j_file);
 }
 
 int main(int argc, char **argv)
@@ -388,6 +423,8 @@ int main(int argc, char **argv)
 		pinfo = pinfo->next;
 		print(tmp->f, tmp->k, tmp->j,
 		      pinfo && should_print_array());
+		if (program_flag & LOCATION_INFO)
+			free(tmp->k);
 		free(tmp);
 	}
 
