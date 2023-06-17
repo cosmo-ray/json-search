@@ -9,6 +9,19 @@ json-c libc
 
 on linux you have the appimages here: https://github.com/cosmo-ray/json-search/tags
 
+# install:
+
+Arch:
+```
+yay -S json-search-git
+```
+
+Macos:
+```
+brew tap cosmo-ray/oui
+brew install cosmo-ray/oui/json-search
+```
+
 # usage:
 ```
 json-search [OPTION] [NEEDLE] [FILES]
