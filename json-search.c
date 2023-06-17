@@ -149,7 +149,7 @@ void print(const char *f, const char *k, struct json_object *v,
 		return;
 	}
 	if ((program_flag & LOCATION_INFO))
-		printf("%s - %s: ", f, k);
+		printf("%s - %s: ", f, k ? k : "(??)");
 	printf("%s",
 	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
 					      JSON_C_TO_STRING_NOSLASHESCAPE));
@@ -158,36 +158,60 @@ void print(const char *f, const char *k, struct json_object *v,
 	printf("\n");
 }
 
-void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
+static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
+		struct json_object *parent, char *key)
 {
 	char *expresion = lks->expresions[lks->deep - 1];
 
-	if (json_object_get_type(o) == json_type_object) {
-		json_object_object_foreach(o, k, v) {
-			char num_buf[128];
-			const char *to_look = k;
+	if (program_flag & CHECK_VALUE) {
+		const char *to_look = NULL;
+		char num_buf[128];
 
-			if (program_flag & CHECK_VALUE) {
-				if (json_object_get_type(v) == json_type_string) {
-					to_look = json_object_get_string(v);
-				} else if (json_object_get_type(v) ==
-					   json_type_int) {
-					snprintf(num_buf,  128, "%d",
-						 json_object_get_int(v));
-					to_look = num_buf;
-				} else if (json_object_get_type(v) ==
-					   json_type_double) {
-					snprintf(num_buf, 128, "%f",
-						 json_object_get_double(v));
-					to_look = num_buf;
+		if (json_object_get_type(o) == json_type_string) {
+			to_look = json_object_get_string(o);
+		} else if (json_object_get_type(o) ==
+			   json_type_int) {
+			snprintf(num_buf,  128, "%d",
+				 json_object_get_int(o));
+			to_look = num_buf;
+		} else if (json_object_get_type(o) ==
+			   json_type_double) {
+			snprintf(num_buf, 128, "%f",
+				 json_object_get_double(o));
+			to_look = num_buf;
+		}
+
+		if (to_look) {
+			if (looker(to_look, expresion)) {
+				if (max_founds && nb_found >= max_founds)
+					return;
+				++nb_found;
+				struct print_info *tmp = malloc(sizeof *tmp);
+
+				tmp->k = key;
+				tmp->f = f;
+				tmp->next = pinfo;
+				pinfo = tmp;
+				if (program_flag & PRINT_PARENT) {
+					tmp->j = parent;
+				} else {
+					tmp->j = o;
 				}
 			}
+		}
+	}
+
+
+	if (json_object_get_type(o) == json_type_object) {
+		json_object_object_foreach(o, k, v) {
+			const char *to_look = k;
 
 			if (program_flag & VERBOSE) {
 				printf("object inspect %s\n", to_look);
 			}
 
-			if (looker(to_look, expresion)) {
+			if (!(program_flag & CHECK_VALUE) &&
+			    looker(to_look, expresion)) {
 				if (max_founds && nb_found >= max_founds)
 					return;
 				++nb_found;
@@ -203,7 +227,7 @@ void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 					tmp->j = v;
 				}
 			}
-			obj_lookup(f, v, lks);
+			obj_lookup(f, v, lks, o, k);
 		}
 	} else if (json_object_get_type(o) == json_type_array) {
 		int l = json_object_array_length(o);
@@ -212,7 +236,8 @@ void obj_lookup(const char *f, struct json_object *o, struct looker *lks)
 			printf("array check...\n");
 		}
 		for (int i = 0; i < l; ++i) {
-			obj_lookup(f, json_object_array_get_idx(o, i), lks);
+			obj_lookup(f, json_object_array_get_idx(o, i), lks,
+				   o, NULL);
 		}
 	}
 }
@@ -223,7 +248,7 @@ void file_look(const char *f, struct json_object *j_file, struct looker *lks)
 		printf("look for '%s' in file '%s'",
 		       lks->expresions[lks->deep - 1], f);
 	}
-	obj_lookup(f, j_file, lks);
+	obj_lookup(f, j_file, lks, j_file, NULL);
 }
 
 int main(int argc, char **argv)
