@@ -218,6 +218,15 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 				printf("object inspect %s\n", to_look);
 			}
 
+			if (program_flag & LOCATION_INFO) {
+				PATH[path_pos] = '.';
+				strcpy(&PATH[path_pos + 1], k);
+				path_pos +=  strlen(k);
+				path_pos += 1;
+				PATH[path_pos] = 0;
+			}
+
+
 			if (!(program_flag & CHECK_VALUE) &&
 			    looker(to_look, expresion)) {
 				if (max_founds && nb_found >= max_founds)
@@ -235,13 +244,6 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 				} else {
 					tmp->j = v;
 				}
-			}
-			if (program_flag & LOCATION_INFO) {
-				PATH[path_pos] = '.';
-				strcpy(&PATH[path_pos + 1], k);
-				path_pos +=  strlen(k);
-				path_pos += 1;
-				PATH[path_pos] = 0;
 			}
 			obj_lookup(f, v, lks, o);
 			if (program_flag & LOCATION_INFO) {
