@@ -66,7 +66,12 @@ void usage(void)
 {
 	printf("json-search [OPTION] [NEEDLE] [FILES]\n"
 	       "Search json object or value inside others jsons\n"
-	       "just reformat input json if no NEEDLE\n\n"
+	       "just reformat input json if no NEEDLE\n"
+	       "example: echo '{\"toto\": \"haha\"}' | json-search -s tot\n"
+	       "will match \"haha\", because 'tot' is a substring of toto\n"
+	       "without -s you would need to wite 'json-search toto'\n"
+	       "to match the same string\n"
+	       "\n"
 	       "OPTIONS:\n"
 	       "\t-v: verbose mode\n"
 	       "\t-i: case insensitive\n"
