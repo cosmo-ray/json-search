@@ -47,6 +47,7 @@ int max_founds;
 #define LOCATION_INFO (1 << 6)
 #define PRINT_KEYS (1 << 7)
 #define NULL_MODE (1 << 8)
+#define PATH_MODE (1 << 9)
 
 #define PATH_L 16384
 
@@ -85,7 +86,7 @@ void usage(void)
 	       "\t\tex: 'file' will match with 'files'\n"
 	       "\t-o: multiple patern search\n"
 	       "\t-l: location info: print file and key\n"
-	       "\t-P: path-mode: print full values path in location info\n"
+	       "\t-P: path-mode: only print path\n"
 	       "\t-h: are you really wondering what this is ?\n");
 }
 
@@ -160,11 +161,16 @@ void print(const char *f, const char *k, struct json_object *v,
 		return;
 	}
 	if ((program_flag & LOCATION_INFO)) {
-		printf("%s - %s: ", f, k);
+		if (program_flag & PATH_MODE)
+			printf("%s", k);
+		else
+			printf("%s - %s: ", f, k);
 	}
-	printf("%s",
-	       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
-					      JSON_C_TO_STRING_NOSLASHESCAPE));
+	if (!(program_flag & PATH_MODE)) {
+		printf("%s",
+		       json_object_to_json_string_ext(v, JSON_C_TO_STRING_PRETTY |
+						      JSON_C_TO_STRING_NOSLASHESCAPE));
+	}
 	if (print_colun)
 		printf(",");
 	printf("\n");
@@ -338,8 +344,12 @@ int main(int argc, char **argv)
 					looker = strstr_look;
 				} else if (*pc == 'l') {
 					if (program_flag & VERBOSE)
-						printf("just json mode\n");
+						printf("location mode\n");
 					program_flag |= LOCATION_INFO;
+				} else if (*pc == 'P') {
+					if (program_flag & VERBOSE)
+						printf("path mode\n");
+					program_flag |= (PATH_MODE | LOCATION_INFO);
 				} else if (*pc == 'i') {
 					if (program_flag & VERBOSE)
 						printf("case insensitive mode\n");
