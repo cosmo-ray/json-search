@@ -80,7 +80,7 @@ void usage(void)
 	       "\t-K: Print only objects keys\n"
 	       "\t-R: raw print\n"
 	       "\t-M NUM: limitate the number of returned objects\n"
-	       "\t-n: null print, in case nothing is found(similar to jq)"
+	       "\t-n: null print, in case nothing is found(similar to jq)\n"
 	       "\t-p: print parent instead of element\n"
 	       "\t-s: locate sub-string instead of strict comparison\n"
 	       "\t\tex: 'file' will match with 'files'\n"
