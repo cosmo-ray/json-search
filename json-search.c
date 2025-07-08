@@ -224,17 +224,32 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 	if (json_object_get_type(o) == json_type_object) {
 		json_object_object_foreach(o, k, v) {
 			const char *to_look = k;
+			int back;
 
 			if (program_flag & VERBOSE) {
 				printf("object inspect %s\n", to_look);
 			}
 
 			if (program_flag & LOCATION_INFO) {
-				PATH[path_pos] = '.';
-				strcpy(&PATH[path_pos + 1], k);
-				path_pos +=  strlen(k);
-				path_pos += 1;
-				PATH[path_pos] = 0;
+				if (strchr(k, '.')) {
+					char *to_print = &PATH[path_pos];
+					PATH[path_pos] = '[';
+					PATH[path_pos + 1] = '"';
+					strcpy(&PATH[path_pos + 2], k);
+					path_pos +=  strlen(k) + 2;
+					PATH[path_pos] = '"';
+					PATH[path_pos + 1] = ']';
+					path_pos += 2;
+					PATH[path_pos] = 0;
+					back = 4;
+				} else {
+					PATH[path_pos] = '.';
+					strcpy(&PATH[path_pos + 1], k);
+					path_pos +=  strlen(k);
+					path_pos += 1;
+					PATH[path_pos] = 0;
+					back = 1;
+				}
 			}
 
 
@@ -258,7 +273,7 @@ static void obj_lookup(const char *f, struct json_object *o, struct looker *lks,
 			}
 			obj_lookup(f, v, lks, o);
 			if (program_flag & LOCATION_INFO) {
-				path_pos -= (strlen(k) + 1);
+				path_pos -= (strlen(k) + back);
 			}
 
 		}
