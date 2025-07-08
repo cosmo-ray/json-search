@@ -23,7 +23,7 @@ for arg in $@; do
 	 cd -
 	 NO_RECOMPILE=0
 	 echo 'JSON_C_CFLAGS=-I./json-c -I./json-c-build' >> config.mk
-	 echo 'JSON_C_LDFLAGS="-L./json-c-build"' >> config.mk
+	 echo 'JSON_C_LDFLAGS="-L./json-c-build" -ljson-c' >> config.mk
 	 echo "cp json-c-build/libjson-c.so* json-search.AppDir/usr/lib/" >> ./cp_json-c.sh
     fi
     if [ "--help" = $arg ]; then
@@ -32,6 +32,7 @@ for arg in $@; do
 done
 
 if [ $NO_RECOMPILE -eq 1 ]; then
+    echo JSON_C_LDFLAGS=$(pkg-config --libs json-c) >> config.mk
     echo JSON_C_CFLAGS=$(pkg-config --cflags json-c) >> config.mk
     echo "cp \$(ldd json-search | grep json | cut -d ' ' -f  3) json-search.AppDir/usr/lib/" >> ./cp_json-c.sh
 fi
